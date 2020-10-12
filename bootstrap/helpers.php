@@ -10,3 +10,8 @@ function tprint($value)
     print_r($value);
     die;
 }
+
+function password($password)
+{
+    return md5($password);
+}

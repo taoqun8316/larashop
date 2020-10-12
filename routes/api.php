@@ -19,7 +19,7 @@ Route::namespace('Api')->group(function () {
     Route::get('/', 'PagesController@root');
 
     Route::get('/users','UserController@index');
-    Route::post('/users','UserController@store');
+    Route::post('/users','UserController@register');
     Route::post('/login','UserController@login');
 
 

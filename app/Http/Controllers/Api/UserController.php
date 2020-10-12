@@ -2,42 +2,35 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\User;
+use App\Service\AuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
-    public function store(Request $request)
+    public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => ['required', 'max:12', 'unique:users,name'],
-            'password' => ['required', 'max:16', 'min:6']
+            'name' => 'required|max:255',
+            'password' => 'required|max:255',
         ]);
         if ($validator->fails()) {
-            return $validator->errors()->first();
+            return $this->failed($validator->messages()->first());
         }
-
-        User::create($request->all());
-        return '用户注册成功。。。';
+        AuthService::register($request);
+        return $this->message('注册成功');
     }
 
-    public function login(Request $request)
+    protected function login(Request $request)
     {
-        3/0;
         $validator = Validator::make($request->all(), [
-            'name' => ['required'],
-            'password' => ['required']
+            'name' => 'required',
+            'password' => 'required',
         ]);
         if ($validator->fails()) {
-            return $validator->errors()->first();
+            return $this->failed($validator->messages()->first());
         }
-
-        $res=Auth::guard('web')->attempt(['name'=>$request->name,'password'=>$request->password]);
-        if($res){
-            return $this->success();
-        }
-        return $this->failed('登录失败');
+        AuthService::login($request);
+        return $this->message('登陆成功');
     }
 }
