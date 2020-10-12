@@ -18,4 +18,9 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
     ];
+
+    public function addresses()
+    {
+        return $this->hasMany(UserAddress::class);
+    }
 }
