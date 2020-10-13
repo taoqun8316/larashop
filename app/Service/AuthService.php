@@ -26,6 +26,7 @@ class AuthService
         $password = password($password);
         $res = Auth::guard('web')->attempt(['name'=>$name,'password'=>$password], true);
         var_dump($res);die;
+
         if(!$res){
             throw new \Exception('账户或密码错误');
         }

@@ -3,17 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\User;
-use App\Service\AuthService;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
+use http\Env\Request;
+
 
 class UserController extends Controller
 {
-    public function show(User $user)
-    {
-        return $this->success($user);
-    }
+    public $loginAfterSignUp = true;
 
     public function register(Request $request)
     {
@@ -24,24 +19,70 @@ class UserController extends Controller
         if ($validator->fails()) {
             return $this->failed($validator->messages()->first());
         }
-        AuthService::register($request);
-        return $this->message('注册成功');
+
+        $user = new User();
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->password = password($request->password);
+        $user->save();
+
+        if ($this->loginAfterSignUp) {
+            return $this->login($request);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $user
+        ], 200);
     }
 
-    protected function login(Request $request)
+    public function login(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required',
-            'password' => 'required',
-        ]);
-        if ($validator->fails()) {
-            return $this->failed($validator->messages()->first());
-        }
-        AuthService::login($request);
+        $input = $request->only('email', 'password');
+        $jwt_token = null;
 
-        if (Auth::check()) {
-            return $this->success('登陆成功');
+        if (!$jwt_token = JWTAuth::attempt($input)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid Email or Password',
+            ], 401);
         }
-        return $this->failed('登陆失败');
+
+        return response()->json([
+            'success' => true,
+            'token' => $jwt_token,
+        ]);
+    }
+
+    public function logout(Request $request)
+    {
+        $this->validate($request, [
+            'token' => 'required'
+        ]);
+
+        try {
+            JWTAuth::invalidate($request->token);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'User logged out successfully'
+            ]);
+        } catch (JWTException $exception) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sorry, the user cannot be logged out'
+            ], 500);
+        }
+    }
+
+    public function getAuthUser(Request $request)
+    {
+        $this->validate($request, [
+            'token' => 'required'
+        ]);
+
+        $user = JWTAuth::authenticate($request->token);
+
+        return response()->json(['user' => $user]);
     }
 }
