@@ -15,6 +15,7 @@ class UserController extends Controller
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
+            'email' => 'required|max:255',
             'name' => 'required|max:255',
             'password' => 'required|max:255',
         ]);
@@ -24,6 +25,7 @@ class UserController extends Controller
 
         $user = new User();
         $user->name = $request->name;
+        $user->email = $request->email;
         $user->password = password($request->password);
         $user->save();
 
@@ -35,13 +37,13 @@ class UserController extends Controller
 
     public function login(Request $request)
     {
-        $input = $request->only('name', 'password');
+        $input = $request->only('email', 'password');
+        $input['password'] = password($input['password']);
         $jwt_token = null;
 
         if (!$jwt_token = JWTAuth::attempt($input)) {
             return $this->failed('Invalid Email or Password');
         }
-
         return $this->success($jwt_token);
     }
 
