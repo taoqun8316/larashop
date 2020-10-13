@@ -8,6 +8,7 @@ class UserAddressesController extends Controller
 {
     public function index(Request $request)
     {
+        return $this->success($request->user());
         return $this->success($request->user()->addresses);
     }
 }

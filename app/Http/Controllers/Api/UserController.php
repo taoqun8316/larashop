@@ -2,12 +2,20 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\User;
 use App\Service\AuthService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
+    public function show(User $user)
+    {
+        $user  =  Auth::guard('web')->user();
+        return $this->success($user);
+    }
+
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -31,6 +39,10 @@ class UserController extends Controller
             return $this->failed($validator->messages()->first());
         }
         AuthService::login($request);
-        return $this->message('登陆成功');
+
+        if (Auth::check()) {
+            return $this->success('登陆成功');
+        }
+        return $this->failed('登陆失败');
     }
 }

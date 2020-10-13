@@ -2,6 +2,7 @@
 namespace App\Service;
 
 use App\Models\User as UserModel;
+use Illuminate\Support\Facades\Auth;
 
 class AuthService
 {
@@ -23,10 +24,12 @@ class AuthService
         $password = $request->input('password');
 
         $password = password($password);
-        $res =  UserModel::where([['name', $name], ['password', $password]])->get();
-        if ($res->count() == 0){
+        $res = Auth::guard('web')->attempt(['name'=>$name,'password'=>$password]);
+        if($res){
             throw new \Exception('账户或密码错误');
         }
+        $adminUser = UserModel::where('name',$name)->where('password',$password)->first();
+        Auth::login($adminUser);
         return true;
     }
 }
