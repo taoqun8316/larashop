@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
+use JWTAuth;
 use App\Models\User;
-use http\Env\Request;
-
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Tymon\JWTAuth\Exceptions\JWTException;
 
 class UserController extends Controller
 {
@@ -22,36 +24,25 @@ class UserController extends Controller
 
         $user = new User();
         $user->name = $request->name;
-        $user->email = $request->email;
         $user->password = password($request->password);
         $user->save();
 
         if ($this->loginAfterSignUp) {
             return $this->login($request);
         }
-
-        return response()->json([
-            'success' => true,
-            'data' => $user
-        ], 200);
+        return $this->success($user);
     }
 
     public function login(Request $request)
     {
-        $input = $request->only('email', 'password');
+        $input = $request->only('name', 'password');
         $jwt_token = null;
 
         if (!$jwt_token = JWTAuth::attempt($input)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid Email or Password',
-            ], 401);
+            return $this->failed('Invalid Email or Password');
         }
 
-        return response()->json([
-            'success' => true,
-            'token' => $jwt_token,
-        ]);
+        return $this->success($jwt_token);
     }
 
     public function logout(Request $request)
@@ -59,19 +50,11 @@ class UserController extends Controller
         $this->validate($request, [
             'token' => 'required'
         ]);
-
         try {
             JWTAuth::invalidate($request->token);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'User logged out successfully'
-            ]);
+            return $this->message('User logged out successfully');
         } catch (JWTException $exception) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Sorry, the user cannot be logged out'
-            ], 500);
+            return $this->failed('Sorry, the user cannot be logged out');
         }
     }
 
@@ -80,9 +63,7 @@ class UserController extends Controller
         $this->validate($request, [
             'token' => 'required'
         ]);
-
         $user = JWTAuth::authenticate($request->token);
-
-        return response()->json(['user' => $user]);
+        return $this->success(['user' => $user]);
     }
 }
