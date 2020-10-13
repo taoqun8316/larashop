@@ -12,7 +12,6 @@ class UserController extends Controller
 {
     public function show(User $user)
     {
-        $user  =  Auth::guard('web')->user();
         return $this->success($user);
     }
 

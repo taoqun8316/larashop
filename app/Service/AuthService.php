@@ -24,12 +24,13 @@ class AuthService
         $password = $request->input('password');
 
         $password = password($password);
-        $res = Auth::guard('web')->attempt(['name'=>$name,'password'=>$password]);
-        if($res){
+        $res = Auth::guard('web')->attempt(['name'=>$name,'password'=>$password], true);
+        var_dump($res);die;
+        if(!$res){
             throw new \Exception('账户或密码错误');
         }
-        $adminUser = UserModel::where('name',$name)->where('password',$password)->first();
-        Auth::login($adminUser);
+        /*$adminUser = UserModel::where('name',$name)->where('password',$password)->first();
+        Auth::login($adminUser);*/
         return true;
     }
 }
