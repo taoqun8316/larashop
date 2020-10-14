@@ -26,7 +26,7 @@ class UserController extends Controller
         $user = new User();
         $user->name = $request->name;
         $user->email = $request->email;
-        $user->password = password($request->password);
+        $user->password = bcrypt($request->password);
         $user->save();
 
         if ($this->loginAfterSignUp) {
@@ -37,8 +37,7 @@ class UserController extends Controller
 
     public function login(Request $request)
     {
-        $input = $request->only('email', 'password');
-        $input['password'] = password($input['password']);
+        $input = $request->only('name', 'password');
         $jwt_token = null;
 
         if (!$jwt_token = JWTAuth::attempt($input)) {
@@ -62,9 +61,12 @@ class UserController extends Controller
 
     public function getAuthUser(Request $request)
     {
-        $this->validate($request, [
-            'token' => 'required'
+        $validator = Validator::make($request->all(), [
+            'token' => 'required',
         ]);
+        if ($validator->fails()) {
+            return $this->failed($validator->messages()->first());
+        }
         $user = JWTAuth::authenticate($request->token);
         return $this->success(['user' => $user]);
     }
