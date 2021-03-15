@@ -2,13 +2,11 @@
 
 namespace App\Exceptions;
 
-use App\Http\Controllers\ApiResponse;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
 
 class Handler extends ExceptionHandler
 {
-    use ApiResponse;
     /**
      * A list of the exception types that are not reported.
      *
@@ -50,19 +48,8 @@ class Handler extends ExceptionHandler
      *
      * @throws \Throwable
      */
-    public function render_bak($request, Throwable $exception)
-    {
-        return parent::render($request, $exception);
-    }
-
     public function render($request, Throwable $exception)
     {
-        if($request->is("api/*")){
-            if (env('APP_DEBUG')){
-                return $this->failed($exception->getMessage(), 500);
-            }
-            return $this->failed('system error', 500);
-        }
         return parent::render($request, $exception);
     }
 }
